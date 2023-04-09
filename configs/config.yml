@@ -1,8 +1,8 @@
 port: 8080
 mailer:
-  port: 587
-  host: "smtp.gmail.com"
-  email: "run.hse.run@gmail.com"
+  port: 465
+  host: "smtp.mail.ru"
+  email: "run.hse.run@mail.ru"
 db:
   host: "clair_postgres"
   port: 5432
