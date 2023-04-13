@@ -20,7 +20,7 @@ type AuthService struct {
 	repo *repository.Repository
 }
 
-func (a *AuthService) CreateUser(user model.User) (int, error) {
+func (a *AuthService) CreateUser(user model.User) (int64, error) {
 	if user.Nickname == "" {
 		return 0, errors.New(NicknameError)
 	}
@@ -52,7 +52,7 @@ func NewAuthService(repo *repository.Repository) *AuthService {
 
 type tokenClaim struct {
 	jwt.StandardClaims
-	UserId int `json:"user_id"`
+	UserId int64 `json:"user_id"`
 }
 
 func (a *AuthService) GenerateToken(email string) (string, error) {
@@ -72,7 +72,7 @@ func (a *AuthService) GenerateToken(email string) (string, error) {
 	return token.SignedString([]byte(os.Getenv("SIGNING_KEY")))
 }
 
-func (a *AuthService) ParseToken(accessToken string) (int, error) {
+func (a *AuthService) ParseToken(accessToken string) (int64, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaim{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")

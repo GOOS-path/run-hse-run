@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+option go_package = ".;genproto";
+
+message User {
+  int64 id = 1;
+  string nickname = 2;
+  string email = 3;
+  string image = 4;
+}
+
+message Users {
+  repeated User users = 1;
+}
+
+message UserWithToken {
+  string access_token = 1;
+  User user = 2;
+}

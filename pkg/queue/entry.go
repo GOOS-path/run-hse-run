@@ -1,11 +1,11 @@
 package queue
 
 type entry struct {
-	userId, roomId int
+	userId, roomId int64
 	done           chan struct{}
 }
 
-func newEntry(userId, roomId int) *entry {
+func newEntry(userId, roomId int64) *entry {
 	return &entry{
 		userId: userId,
 		roomId: roomId,

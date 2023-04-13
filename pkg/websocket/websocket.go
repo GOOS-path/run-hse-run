@@ -3,7 +3,7 @@ package websocket
 import "net/http"
 
 type JsonWriter interface {
-	WriteJson(userId int, message interface{})
+	WriteJson(userId int64, message interface{})
 	UpgradeConnection(w http.ResponseWriter, r *http.Request)
 }
 

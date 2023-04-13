@@ -1,4 +1,4 @@
-package handler
+package server
 
 import (
 	"Run_Hse_Run/pkg/logger"

@@ -9,7 +9,7 @@ type FriendsService struct {
 	repo *repository.Repository
 }
 
-func (f *FriendsService) AddFriend(userIdFrom, userIdTo int) error {
+func (f *FriendsService) AddFriend(userIdFrom, userIdTo int64) error {
 	if userIdFrom == userIdTo {
 		return nil
 	}
@@ -17,7 +17,7 @@ func (f *FriendsService) AddFriend(userIdFrom, userIdTo int) error {
 	return f.repo.AddFriend(userIdFrom, userIdTo)
 }
 
-func (f *FriendsService) DeleteFriend(userIdFrom, userIdTo int) error {
+func (f *FriendsService) DeleteFriend(userIdFrom, userIdTo int64) error {
 	if userIdFrom == userIdTo {
 		return nil
 	}
@@ -25,7 +25,7 @@ func (f *FriendsService) DeleteFriend(userIdFrom, userIdTo int) error {
 	return f.repo.DeleteFriend(userIdFrom, userIdTo)
 }
 
-func (f *FriendsService) GetFriends(userId int) ([]model.User, error) {
+func (f *FriendsService) GetFriends(userId int64) ([]model.User, error) {
 	return f.repo.GetFriends(userId)
 }
 

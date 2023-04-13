@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+import "google/protobuf/empty.proto";
+import "user.proto";
+
+option go_package = ".;genproto";
+
+service AuthService {
+  rpc Registration(User) returns (UserWithToken);
+  rpc SendVerifyEmail(SendVerifyEmailRequest) returns (google.protobuf.Empty);
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+}
+
+message SendVerifyEmailRequest {
+  string email = 1;
+}
+
+message VerifyRequest {
+  string email = 1;
+  int64 code = 2;
+}
+
+message VerifyResponse {
+  oneof response {
+    UserWithToken userInfo = 1;
+    bool need_registration = 2;
+  }
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+import "google/protobuf/empty.proto";
+import "user.proto";
+
+option go_package = ".;genproto";
+
+service FriendService {
+  rpc AddFriend(AddFriendRequest) returns (google.protobuf.Empty);
+  rpc DeleteFriend(DeleteFriendRequest) returns (google.protobuf.Empty);
+  rpc GetFriends(google.protobuf.Empty) returns (Users);
+}
+
+message AddFriendRequest {
+  int64 user_id = 1;
+}
+
+message DeleteFriendRequest {
+  int64 user_id = 1;
+}

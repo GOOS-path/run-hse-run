@@ -12,11 +12,11 @@ type UsersService struct {
 	repo *repository.Repository
 }
 
-func (u *UsersService) ChangeProfileImage(userId, image int) error {
+func (u *UsersService) ChangeProfileImage(userId int64, image string) error {
 	return u.repo.ChangeProfileImage(userId, image)
 }
 
-func (u *UsersService) RenameUser(userId int, nickname string) error {
+func (u *UsersService) RenameUser(userId int64, nickname string) error {
 	if nickname == "" {
 		return errors.New(NicknameError)
 	}
@@ -42,7 +42,7 @@ func (u *UsersService) GetUsersByNicknamePattern(nickname string) ([]model.User,
 	return u.repo.GetUsersByNicknamePattern(nickname)
 }
 
-func (u *UsersService) GetUserById(userId int) (model.User, error) {
+func (u *UsersService) GetUserById(userId int64) (model.User, error) {
 	return u.repo.GetUserById(userId)
 }
 

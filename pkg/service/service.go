@@ -12,7 +12,7 @@ import (
 
 var (
 	Mu    sync.Mutex
-	Codes = make(map[string]int)
+	Codes = make(map[string]int64)
 )
 
 type Sender interface {
@@ -20,35 +20,35 @@ type Sender interface {
 }
 
 type Authorization interface {
-	CreateUser(user model.User) (int, error)
+	CreateUser(user model.User) (int64, error)
 	GetUser(email string) (model.User, error)
 	GenerateToken(email string) (string, error)
-	ParseToken(accessToken string) (int, error)
+	ParseToken(accessToken string) (int64, error)
 }
 
 type Friends interface {
-	AddFriend(userIdFrom, userIdTo int) error
-	DeleteFriend(userIdFrom, userIdTo int) error
-	GetFriends(userId int) ([]model.User, error)
+	AddFriend(userIdFrom, userIdTo int64) error
+	DeleteFriend(userIdFrom, userIdTo int64) error
+	GetFriends(userId int64) ([]model.User, error)
 }
 
 type Users interface {
-	GetUserById(userId int) (model.User, error)
+	GetUserById(userId int64) (model.User, error)
 	GetUsersByNicknamePattern(nickname string) ([]model.User, error)
-	RenameUser(userId int, nickname string) error
-	ChangeProfileImage(userId, image int) error
+	RenameUser(userId int64, nickname string) error
+	ChangeProfileImage(userId int64, image string) error
 }
 
 type Game interface {
-	GetRoomByCodePattern(code string, campusId int) ([]model.Room, error)
-	AddCall(userIdFirst, userIdSecond, roomIdFirst int) (model.Game, error)
-	DeleteCall(userIdFirst, userIdSecond int) error
-	AddUser(userId, roomId int)
-	Cancel(userId int)
+	GetRoomByCodePattern(code string, campusId int64) ([]model.Room, error)
+	AddCall(userIdFirst, userIdSecond, roomIdFirst int64) (model.Game, error)
+	DeleteCall(userIdFirst, userIdSecond int64) error
+	AddUser(userId, roomId int64)
+	Cancel(userId int64)
 	SendGame(game model.Game) error
 	UpgradeConnection(w http.ResponseWriter, r *http.Request)
-	SendResult(gameId, userId, time int)
-	UpdateTime(gameId, userId, time int) error
+	SendResult(gameId, userId, time int64)
+	UpdateTime(gameId, userId, time int64) error
 }
 
 type Service struct {

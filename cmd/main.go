@@ -1,11 +1,10 @@
 package main
 
 import (
-	runHse "Run_Hse_Run"
-	"Run_Hse_Run/pkg/handler"
 	"Run_Hse_Run/pkg/mailer"
 	"Run_Hse_Run/pkg/queue"
 	"Run_Hse_Run/pkg/repository"
+	"Run_Hse_Run/pkg/server"
 	"Run_Hse_Run/pkg/service"
 	"Run_Hse_Run/pkg/websocket"
 	"github.com/joho/godotenv"
@@ -13,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 	"log"
+	"net"
 	"os"
 )
 
@@ -49,10 +49,14 @@ func main() {
 	queues := queue.NewQueue()
 	websockets := websocket.NewServer()
 	services := service.NewService(repositories, mailers, queues, websockets)
-	handlers := handler.NewHandler(services)
+	srv := server.NewGRPCServer(services)
 
-	srv := new(runHse.Server)
-	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
+	listener, err := net.Listen("tcp", ":"+viper.GetString("port"))
+	if err != nil {
+		log.Fatalf("Can't create net listener: %s", err.Error())
+	}
+
+	if err := srv.Run(listener); err != nil {
 		log.Fatalf("Error in running server: %s", err.Error())
 	}
 }

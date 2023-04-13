@@ -10,8 +10,8 @@ type FriendPostgres struct {
 	db *sqlx.DB
 }
 
-func (f *FriendPostgres) AddFriend(userIdFrom, userIdTo int) error {
-	var count int
+func (f *FriendPostgres) AddFriend(userIdFrom, userIdTo int64) error {
+	var count int64
 	tx, err := f.db.Begin()
 	if err != nil {
 		return err
@@ -35,13 +35,13 @@ func (f *FriendPostgres) AddFriend(userIdFrom, userIdTo int) error {
 	return tx.Commit()
 }
 
-func (f *FriendPostgres) DeleteFriend(userIdFrom, userIdTo int) error {
+func (f *FriendPostgres) DeleteFriend(userIdFrom, userIdTo int64) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE user_id1=$1 AND user_id2=$2", friendsTable)
 	_, err := f.db.Exec(query, userIdFrom, userIdTo)
 	return err
 }
 
-func (f *FriendPostgres) GetFriends(userId int) ([]model.User, error) {
+func (f *FriendPostgres) GetFriends(userId int64) ([]model.User, error) {
 	var users []model.User
 
 	query := fmt.Sprintf(`SELECT us.id, us.nickname, us.email, us.image FROM %s us 

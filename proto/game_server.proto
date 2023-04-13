@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+import "google/protobuf/empty.proto";
+import "room.proto";
+
+option go_package = ".;genproto";
+
+service GameService {
+  rpc GetRoomsByCode(GetRoomByCodeRequest) returns (GetRoomByCodeResponse);
+  rpc PutInQueue(PutInQueueRequest) returns (google.protobuf.Empty);
+  rpc DeleteFromQueue(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc AddCall(AddCallRequest) returns (google.protobuf.Empty);
+  rpc DeleteCall(DeleteCallRequest) returns (google.protobuf.Empty);
+  rpc SendTime(SendTimeRequest) returns (google.protobuf.Empty);
+  rpc StreamGame(google.protobuf.Empty) returns (stream StreamResponse);
+}
+
+message GetRoomByCodeResponse {
+  repeated Room rooms = 1;
+}
+
+message GetRoomByCodeRequest {
+  string code = 1;
+}
+
+message PutInQueueRequest {
+  string code = 1;
+}
+
+message AddCallRequest {
+  int64 room_id = 1;
+  int64 opponent_id = 2;
+}
+
+message DeleteCallRequest {
+  int64 opponent_id = 1;
+}
+
+message SendTimeRequest {
+  int64 game_id = 1;
+  int64 time = 2;
+}
+
+message GameInfo {
+  string opponent_nickname = 1;
+  int64 game_id = 2;
+  repeated Room rooms = 3;
+}
+
+message StreamResponse {
+  oneof result {
+    string game_result = 1;
+    GameInfo game_info = 2;
+  }
+}

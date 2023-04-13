@@ -30,7 +30,7 @@ const (
 
 var (
 	mu           sync.Mutex
-	isSendResult = make(map[int]struct{})
+	isSendResult = make(map[int64]struct{})
 )
 
 type GameService struct {
@@ -39,11 +39,11 @@ type GameService struct {
 	websocket *websocket.Server
 }
 
-func (g *GameService) UpdateTime(gameId, userId, time int) error {
+func (g *GameService) UpdateTime(gameId, userId, time int64) error {
 	return g.repo.UpdateTime(gameId, userId, time)
 }
 
-func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int) {
+func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int64) {
 	game, err := g.repo.GetGame(gameId)
 	if err != nil {
 		return
@@ -180,11 +180,11 @@ func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int) {
 	}
 }
 
-func (g *GameService) AddUser(userId, roomId int) {
+func (g *GameService) AddUser(userId, roomId int64) {
 	g.queue.AddUser(userId, roomId)
 }
 
-func (g *GameService) Cancel(userId int) {
+func (g *GameService) Cancel(userId int64) {
 	g.queue.Cancel(userId)
 }
 
@@ -225,7 +225,7 @@ func (g *GameService) SendGame(game model.Game) error {
 
 	gameInfo1 := struct {
 		Nickname string       `json:"nickname"`
-		GameId   int          `json:"game_id"`
+		GameId   int64        `json:"game_id"`
 		Rooms    []model.Room `json:"rooms"`
 	}{
 		Nickname: user2.Nickname,
@@ -235,7 +235,7 @@ func (g *GameService) SendGame(game model.Game) error {
 
 	gameInfo2 := struct {
 		Nickname string       `json:"nickname"`
-		GameId   int          `json:"game_id"`
+		GameId   int64        `json:"game_id"`
 		Rooms    []model.Room `json:"rooms"`
 	}{
 		Nickname: user1.Nickname,
@@ -267,16 +267,16 @@ func (g *GameService) UpgradeConnection(w http.ResponseWriter, r *http.Request) 
 	g.websocket.UpgradeConnection(w, r)
 }
 
-func (g *GameService) DeleteCall(userIdFirst, userIdSecond int) error {
+func (g *GameService) DeleteCall(userIdFirst, userIdSecond int64) error {
 	return g.repo.DeleteCall(userIdFirst, userIdSecond)
 }
 
-func (g *GameService) AddCall(userIdFirst, userIdSecond, roomIdFirst int) (model.Game, error) {
+func (g *GameService) AddCall(userIdFirst, userIdSecond, roomIdFirst int64) (model.Game, error) {
 	return g.repo.AddCall(userIdFirst, userIdSecond, roomIdFirst)
 }
 
 func (g *GameService) GenerateRoomsForGame(startRoom1, startRoom2, count,
-	campusId int) ([]model.Room, []model.Room, error) {
+	campusId int64) ([]model.Room, []model.Room, error) {
 	countErrors := 0
 	for i := 0; i < CountTries; i++ {
 		if countErrors > MaxCountError {
@@ -322,7 +322,7 @@ func (g *GameService) GenerateRoomsForGame(startRoom1, startRoom2, count,
 	return nil, nil, errors.New("can't generate rooms")
 }
 
-func (g *GameService) GenerateRandomRooms(startRoomId, count, campusId int) ([]model.Room, error) {
+func (g *GameService) GenerateRandomRooms(startRoomId, count, campusId int64) ([]model.Room, error) {
 	if MaxRoomsInGame < count {
 		return nil, errors.New(fmt.Sprintf("max rooms in game must be less than %d", MaxRoomsInGame))
 	}
@@ -335,7 +335,7 @@ func (g *GameService) GenerateRandomRooms(startRoomId, count, campusId int) ([]m
 
 	rooms, err := g.GetRoomByCodePattern("", campusId)
 
-	if len(rooms) < count {
+	if int64(len(rooms)) < count {
 		return nil, errors.New(fmt.Sprintf("count must be less than count of Rooms %d", len(rooms)))
 	}
 
@@ -343,11 +343,11 @@ func (g *GameService) GenerateRandomRooms(startRoomId, count, campusId int) ([]m
 		return nil, err
 	}
 
-	used := make(map[int]struct{})
+	used := make(map[int64]struct{})
 	used[startRoomId] = struct{}{}
 	previous := startRoomId
 
-	for len(generatedRooms) < count {
+	for int64(len(generatedRooms)) < count {
 		index := rand.Intn(len(rooms))
 		if _, ok := used[rooms[index].Id]; !ok {
 			if edge, err := g.repo.GetEdge(previous, rooms[index].Id); err == nil {
@@ -365,7 +365,7 @@ func (g *GameService) GenerateRandomRooms(startRoomId, count, campusId int) ([]m
 	return generatedRooms, nil
 }
 
-func (g *GameService) GetDistanceBetweenRooms(startRoomId int, rooms []model.Room) (float64, error) {
+func (g *GameService) GetDistanceBetweenRooms(startRoomId int64, rooms []model.Room) (float64, error) {
 	if len(rooms) < 1 {
 		return 0, errors.New("rooms must be more than zero")
 	}
@@ -385,7 +385,7 @@ func (g *GameService) GetDistanceBetweenRooms(startRoomId int, rooms []model.Roo
 	return cost, nil
 }
 
-func (g *GameService) GenerateRoomsByDistance(startRoomId int, rooms []model.Room,
+func (g *GameService) GenerateRoomsByDistance(startRoomId int64, rooms []model.Room,
 	distance float64) ([]model.Room, error) {
 	count := len(rooms)
 	if count < 1 {
@@ -393,7 +393,7 @@ func (g *GameService) GenerateRoomsByDistance(startRoomId int, rooms []model.Roo
 	}
 
 	var generatedRooms []model.Room
-	used := make(map[int]struct{})
+	used := make(map[int64]struct{})
 
 	for _, room := range rooms {
 		used[room.Id] = struct{}{}
@@ -447,7 +447,7 @@ func (g *GameService) getNearestEdge(edges []model.Edge, distance float64) model
 	return minEdge
 }
 
-func (g *GameService) GetRoomByCodePattern(code string, campusId int) ([]model.Room, error) {
+func (g *GameService) GetRoomByCodePattern(code string, campusId int64) ([]model.Room, error) {
 	if 15 < len(code) {
 		return nil, nil
 	}

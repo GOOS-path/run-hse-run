@@ -3,8 +3,8 @@ package queue
 import "Run_Hse_Run/pkg/model"
 
 type Queuer interface {
-	AddUser(userId, roomId int)
-	Cancel(userId int)
+	AddUser(userId, roomId int64)
+	Cancel(userId int64)
 	Start()
 	GetGameChan() <-chan model.Game
 }

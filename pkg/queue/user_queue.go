@@ -7,12 +7,12 @@ import (
 
 type UserQueue struct {
 	sync.Mutex
-	gameEntries map[int]*entry
+	gameEntries map[int64]*entry
 	requests    chan *entry
 	games       chan model.Game
 }
 
-func (u *UserQueue) AddUser(userId, roomId int) {
+func (u *UserQueue) AddUser(userId, roomId int64) {
 	u.Lock()
 	e := u.gameEntries[userId]
 	if e != nil && !e.canceled() {
@@ -26,7 +26,7 @@ func (u *UserQueue) AddUser(userId, roomId int) {
 	u.requests <- e
 }
 
-func (u *UserQueue) Cancel(userId int) {
+func (u *UserQueue) Cancel(userId int64) {
 	u.Lock()
 	e := u.gameEntries[userId]
 	if e != nil && !e.canceled() {
@@ -60,7 +60,7 @@ func (u *UserQueue) GetGameChan() <-chan model.Game {
 
 func NewUserQueue() *UserQueue {
 	return &UserQueue{
-		gameEntries: make(map[int]*entry),
+		gameEntries: make(map[int64]*entry),
 		requests:    make(chan *entry),
 		games:       make(chan model.Game),
 	}

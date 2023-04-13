@@ -22,10 +22,10 @@ const (
 
 type GorillaServer struct {
 	sync.Mutex
-	clients map[int]*websocket.Conn
+	clients map[int64]*websocket.Conn
 }
 
-func (g *GorillaServer) WriteJson(userId int, message interface{}) {
+func (g *GorillaServer) WriteJson(userId int64, message interface{}) {
 	timer := time.NewTimer(timeOut)
 	ticker := time.NewTicker(timeQueryAgain)
 	for {
@@ -49,7 +49,7 @@ func (g *GorillaServer) WriteJson(userId int, message interface{}) {
 }
 
 func (g *GorillaServer) UpgradeConnection(w http.ResponseWriter, r *http.Request) {
-	userId, ok := r.Context().Value(UserId).(int)
+	userId, ok := r.Context().Value(UserId).(int64)
 	if !ok {
 		logger.WarningLogger.Println("invalid context")
 		return
@@ -114,6 +114,6 @@ func (g *GorillaServer) UpgradeConnection(w http.ResponseWriter, r *http.Request
 
 func NewGorillaServer() *GorillaServer {
 	return &GorillaServer{
-		clients: make(map[int]*websocket.Conn),
+		clients: make(map[int64]*websocket.Conn),
 	}
 }

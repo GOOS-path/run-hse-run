@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+import "google/protobuf/empty.proto";
+import "user.proto";
+
+option go_package = ".;genproto";
+
+service UserService {
+  rpc GetUserByID(GetUserByIDRequest) returns (User);
+  rpc GetMe(google.protobuf.Empty) returns (User);
+  rpc GetUserByNickname(GetUserByNicknameRequest) returns (Users);
+  rpc ChangeNickname(ChangeNicknameRequest) returns (google.protobuf.Empty);
+  rpc ChangeImage(ChangeImageRequest) returns (google.protobuf.Empty);
+}
+
+message GetUserByIDRequest {
+  int64 id = 1;
+}
+
+message GetUserByNicknameRequest {
+  string nickname = 1;
+}
+
+message ChangeNicknameRequest {
+  string new_nickname = 1;
+}
+
+message ChangeImageRequest {
+  string new_image = 1;
+}

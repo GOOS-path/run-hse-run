@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+option go_package = ".;genproto";
+
+message Room {
+  int64 id = 1;
+  string code = 2;
+  int64 campus_id = 3;
+}
