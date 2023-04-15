@@ -13,6 +13,7 @@ service UserService {
   rpc GetUserByNickname(GetUserByNicknameRequest) returns (Users);
   rpc ChangeNickname(ChangeNicknameRequest) returns (google.protobuf.Empty);
   rpc ChangeImage(ChangeImageRequest) returns (google.protobuf.Empty);
+  rpc GetLeaderBoard(google.protobuf.Empty) returns (Users);
 }
 
 message GetUserByIDRequest {
