@@ -27,6 +27,7 @@ func (a *AuthServer) Registration(_ context.Context, request *genproto.User) (*g
 		Email:    request.GetEmail(),
 		Nickname: request.GetNickname(),
 		Image:    request.GetImage(),
+		Score:    0,
 	}
 
 	id, err := a.services.CreateUser(user)
