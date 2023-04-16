@@ -26,11 +26,13 @@ func (a *AuthServer) Registration(_ context.Context, request *genproto.User) (*g
 	user := model.User{
 		Email:    request.GetEmail(),
 		Nickname: request.GetNickname(),
-		Image:    request.GetImage(),
+		Image:    "",
 		Score:    0,
 	}
 
 	id, err := a.services.CreateUser(user)
+
+	saveImage(id, request.GetImage())
 
 	if err != nil {
 		logger.WarningLogger.Println(err)
@@ -41,6 +43,7 @@ func (a *AuthServer) Registration(_ context.Context, request *genproto.User) (*g
 	}
 
 	user.Id = id
+	user.Image = request.GetImage()
 
 	token, err := a.services.GenerateToken(request.GetEmail())
 	if err != nil {
@@ -103,6 +106,8 @@ func (a *AuthServer) Verify(_ context.Context, request *genproto.VerifyRequest) 
 		logger.WarningLogger.Println(err)
 		return nil, status.Errorf(codes.InvalidArgument, "can't generate token: %v", err.Error())
 	}
+
+	user.Image = getImage(user.Id)
 
 	return &genproto.VerifyResponse{
 		Response: &genproto.VerifyResponse_UserInfo{

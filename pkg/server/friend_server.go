@@ -97,6 +97,7 @@ func (f *FriendServer) GetFriends(ctx context.Context, _ *emptypb.Empty) (*genpr
 
 	var protoUsers []*genproto.User
 	for _, user := range users {
+		user.Image = getImage(user.Id)
 		protoUsers = append(protoUsers, conversions.ConvertUser(user))
 	}
 	return &genproto.Users{Users: protoUsers}, err
