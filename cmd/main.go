@@ -6,7 +6,6 @@ import (
 	"Run_Hse_Run/pkg/repository"
 	"Run_Hse_Run/pkg/server"
 	"Run_Hse_Run/pkg/service"
-	"Run_Hse_Run/pkg/websocket"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
@@ -47,8 +46,7 @@ func main() {
 	mailers := mailer.NewMailer(dialer)
 	repositories := repository.NewRepository(db)
 	queues := queue.NewQueue()
-	websockets := websocket.NewServer()
-	services := service.NewService(repositories, mailers, queues, websockets)
+	services := service.NewService(repositories, mailers, queues)
 	srv := server.NewGRPCServer(services)
 
 	listener, err := net.Listen("tcp", ":"+viper.GetString("port"))
