@@ -22,6 +22,7 @@ type Users interface {
 	GetUsersByNicknamePattern(nickname string) ([]model.User, error)
 	RenameUser(userId int64, nickname string) error
 	ChangeProfileImage(userId int64, image string) error
+	UpdateScore(userId int64) error
 }
 
 type Game interface {

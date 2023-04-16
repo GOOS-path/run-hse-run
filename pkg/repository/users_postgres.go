@@ -48,6 +48,17 @@ func (u *UsersPostgres) GetUserById(userId int64) (model.User, error) {
 	return user, err
 }
 
+func (u *UsersPostgres) UpdateScore(userId int64) error {
+	user, err := u.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET score = $1 WHERE id = $2", usersTable)
+	_, err = u.db.Exec(query, user.Score+1, userId)
+	return err
+}
+
 func NewUsersPostgres(db *sqlx.DB) *UsersPostgres {
 	return &UsersPostgres{db: db}
 }

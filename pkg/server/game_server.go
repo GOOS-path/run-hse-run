@@ -189,6 +189,16 @@ func (g *GameServer) StreamGame(_ *emptypb.Empty, server genproto.GameService_St
 
 	userChannel := g.services.CreateUserChannel(userID)
 	for resp := range userChannel {
+		switch result := resp.GetResult().(type) {
+		case *genproto.StreamResponse_GameResult:
+			if result.GameResult == "WIN" {
+				err = g.services.UpdateScore(userID)
+				if err != nil {
+					logger.WarningLogger.Println("can't update score: %v", err.Error())
+					return status.Errorf(codes.Internal, "can't update score: %v", err.Error())
+				}
+			}
+		}
 		err = server.Send(resp)
 		if err != nil {
 			logger.WarningLogger.Printf("can't send game result: %v", err.Error())

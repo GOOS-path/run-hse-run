@@ -50,6 +50,10 @@ func (u *UsersService) GetUsers() ([]model.User, error) {
 	return u.repo.GetUsers()
 }
 
+func (u *UsersService) UpdateScore(userId int64) error {
+	return u.repo.UpdateScore(userId)
+}
+
 func NewUsersService(repo *repository.Repository) *UsersService {
 	return &UsersService{repo: repo}
 }
