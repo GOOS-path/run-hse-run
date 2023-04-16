@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"sort"
 	"strconv"
 )
 
@@ -25,6 +26,24 @@ func (u *UserServer) GetUserByID(_ context.Context, request *genproto.GetUserByI
 	}
 
 	return conversions.ConvertUser(user), nil
+}
+
+func (u *UserServer) GetLeaderBoard(_ context.Context, _ *emptypb.Empty) (*genproto.Users, error) {
+	users, err := u.services.GetUsers()
+	if err != nil {
+		logger.WarningLogger.Printf("can't get users: %v", err.Error())
+		return nil, status.Errorf(codes.Internal, "can't get users: %v", err.Error())
+	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Score > users[j].Score
+	})
+
+	var protoUsers []*genproto.User
+	for _, user := range users {
+		protoUsers = append(protoUsers, conversions.ConvertUser(user))
+	}
+	return &genproto.Users{Users: protoUsers}, err
 }
 
 func (u *UserServer) GetMe(ctx context.Context, _ *emptypb.Empty) (*genproto.User, error) {

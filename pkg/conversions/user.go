@@ -11,5 +11,6 @@ func ConvertUser(user model.User) *genproto.User {
 		Nickname: user.Nickname,
 		Email:    user.Email,
 		Image:    user.Image,
+		Score:    user.Score,
 	}
 }

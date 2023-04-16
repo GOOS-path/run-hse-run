@@ -1,12 +1,11 @@
 package service
 
 import (
+	"Run_Hse_Run/genproto"
 	"Run_Hse_Run/pkg/mailer"
 	"Run_Hse_Run/pkg/model"
 	"Run_Hse_Run/pkg/queue"
 	"Run_Hse_Run/pkg/repository"
-	"Run_Hse_Run/pkg/websocket"
-	"net/http"
 	"sync"
 )
 
@@ -33,6 +32,7 @@ type Friends interface {
 }
 
 type Users interface {
+	GetUsers() ([]model.User, error)
 	GetUserById(userId int64) (model.User, error)
 	GetUsersByNicknamePattern(nickname string) ([]model.User, error)
 	RenameUser(userId int64, nickname string) error
@@ -46,9 +46,9 @@ type Game interface {
 	AddUser(userId, roomId int64)
 	Cancel(userId int64)
 	SendGame(game model.Game) error
-	UpgradeConnection(w http.ResponseWriter, r *http.Request)
 	SendResult(gameId, userId, time int64)
 	UpdateTime(gameId, userId, time int64) error
+	CreateUserChannel(userID int64) chan *genproto.StreamResponse
 }
 
 type Service struct {
@@ -60,12 +60,12 @@ type Service struct {
 }
 
 func NewService(repo *repository.Repository, sender *mailer.Mailer,
-	queue *queue.Queue, websocket *websocket.Server) *Service {
+	queue *queue.Queue) *Service {
 	return &Service{
 		Sender:        NewSenderService(sender),
 		Authorization: NewAuthService(repo),
 		Friends:       NewFriendsService(repo),
 		Users:         NewUsersService(repo),
-		Game:          NewGameService(repo, queue, websocket),
+		Game:          NewGameService(repo, queue),
 	}
 }

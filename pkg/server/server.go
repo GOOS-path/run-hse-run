@@ -26,10 +26,12 @@ func (srv *GRPCServer) Run(listener net.Listener) error {
 	authServer := NewAuthServer(srv.services)
 	userServer := NewUserServer(srv.services)
 	friendServer := NewFriendServer(srv.services)
+	gameServer := NewGameServer(srv.services)
 
 	genproto.RegisterAuthServiceServer(srv.grpcServer, authServer)
 	genproto.RegisterUserServiceServer(srv.grpcServer, userServer)
 	genproto.RegisterFriendServiceServer(srv.grpcServer, friendServer)
+	genproto.RegisterGameServiceServer(srv.grpcServer, gameServer)
 	reflection.Register(srv.grpcServer)
 
 	return srv.grpcServer.Serve(listener)

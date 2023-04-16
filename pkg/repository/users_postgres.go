@@ -31,6 +31,15 @@ func (u *UsersPostgres) GetUsersByNicknamePattern(nickname string) ([]model.User
 	return users, err
 }
 
+func (u *UsersPostgres) GetUsers() ([]model.User, error) {
+	var users []model.User
+
+	query := fmt.Sprintf(`SELECT * FROM %s`, usersTable)
+	err := u.db.Select(&users, query)
+
+	return users, err
+}
+
 func (u *UsersPostgres) GetUserById(userId int64) (model.User, error) {
 	var user model.User
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", usersTable)

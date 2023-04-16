@@ -5,4 +5,5 @@ type User struct {
 	Nickname string `json:"nickname" db:"nickname"`
 	Email    string `json:"email" db:"email"`
 	Image    string `json:"image" db:"image"`
+	Score    int64  `json:"score" db:"score"`
 }

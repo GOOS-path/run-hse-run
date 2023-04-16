@@ -28,6 +28,7 @@ type UserServiceClient interface {
 	GetUserByNickname(ctx context.Context, in *GetUserByNicknameRequest, opts ...grpc.CallOption) (*Users, error)
 	ChangeNickname(ctx context.Context, in *ChangeNicknameRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ChangeImage(ctx context.Context, in *ChangeImageRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetLeaderBoard(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Users, error)
 }
 
 type userServiceClient struct {
@@ -83,6 +84,15 @@ func (c *userServiceClient) ChangeImage(ctx context.Context, in *ChangeImageRequ
 	return out, nil
 }
 
+func (c *userServiceClient) GetLeaderBoard(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Users, error) {
+	out := new(Users)
+	err := c.cc.Invoke(ctx, "/run.hse.run.UserService/GetLeaderBoard", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -92,6 +102,7 @@ type UserServiceServer interface {
 	GetUserByNickname(context.Context, *GetUserByNicknameRequest) (*Users, error)
 	ChangeNickname(context.Context, *ChangeNicknameRequest) (*emptypb.Empty, error)
 	ChangeImage(context.Context, *ChangeImageRequest) (*emptypb.Empty, error)
+	GetLeaderBoard(context.Context, *emptypb.Empty) (*Users, error)
 }
 
 // UnimplementedUserServiceServer should be embedded to have forward compatible implementations.
@@ -112,6 +123,9 @@ func (UnimplementedUserServiceServer) ChangeNickname(context.Context, *ChangeNic
 }
 func (UnimplementedUserServiceServer) ChangeImage(context.Context, *ChangeImageRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeImage not implemented")
+}
+func (UnimplementedUserServiceServer) GetLeaderBoard(context.Context, *emptypb.Empty) (*Users, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLeaderBoard not implemented")
 }
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -215,6 +229,24 @@ func _UserService_ChangeImage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetLeaderBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetLeaderBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/run.hse.run.UserService/GetLeaderBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetLeaderBoard(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -241,6 +273,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeImage",
 			Handler:    _UserService_ChangeImage_Handler,
+		},
+		{
+			MethodName: "GetLeaderBoard",
+			Handler:    _UserService_GetLeaderBoard_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

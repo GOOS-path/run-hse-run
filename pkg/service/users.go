@@ -46,6 +46,10 @@ func (u *UsersService) GetUserById(userId int64) (model.User, error) {
 	return u.repo.GetUserById(userId)
 }
 
+func (u *UsersService) GetUsers() ([]model.User, error) {
+	return u.repo.GetUsers()
+}
+
 func NewUsersService(repo *repository.Repository) *UsersService {
 	return &UsersService{repo: repo}
 }

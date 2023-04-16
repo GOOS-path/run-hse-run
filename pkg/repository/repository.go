@@ -17,6 +17,7 @@ type Friends interface {
 }
 
 type Users interface {
+	GetUsers() ([]model.User, error)
 	GetUserById(userId int64) (model.User, error)
 	GetUsersByNicknamePattern(nickname string) ([]model.User, error)
 	RenameUser(userId int64, nickname string) error

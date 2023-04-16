@@ -1,16 +1,16 @@
 package service
 
 import (
+	"Run_Hse_Run/genproto"
+	"Run_Hse_Run/pkg/conversions"
 	"Run_Hse_Run/pkg/logger"
 	"Run_Hse_Run/pkg/model"
 	"Run_Hse_Run/pkg/queue"
 	"Run_Hse_Run/pkg/repository"
-	"Run_Hse_Run/pkg/websocket"
 	"errors"
 	"fmt"
 	"math"
 	"math/rand"
-	"net/http"
 	"regexp"
 	"sync"
 	"time"
@@ -34,9 +34,11 @@ var (
 )
 
 type GameService struct {
-	repo      *repository.Repository
-	queue     *queue.Queue
-	websocket *websocket.Server
+	repo  *repository.Repository
+	queue *queue.Queue
+
+	mu           sync.Mutex
+	userChannels map[int64]chan *genproto.StreamResponse
 }
 
 func (g *GameService) UpdateTime(gameId, userId, time int64) error {
@@ -81,31 +83,23 @@ func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int64) {
 
 			mu.Unlock()
 
-			message1 := struct {
-				GameResult string `json:"game_result"`
-			}{}
+			message1 := "LOSE"
+			message2 := "WIN"
 
-			message2 := struct {
-				GameResult string `json:"game_result"`
-			}{}
-
-			if timeUser1 == InfTime {
-				message1.GameResult = "LOSE"
-				message2.GameResult = "WIN"
-			} else {
+			if timeUser1 != InfTime {
 				if timeUser2.Time == -1 {
 					continue
 				}
 
 				if timeUser1 == timeUser2.Time {
-					message1.GameResult = "DRAW"
-					message2.GameResult = "DRAW"
+					message1 = "DRAW"
+					message2 = "DRAW"
 				} else if timeUser1 < timeUser2.Time {
-					message1.GameResult = "WIN"
-					message2.GameResult = "LOSE"
+					message1 = "WIN"
+					message2 = "LOSE"
 				} else {
-					message1.GameResult = "LOSE"
-					message2.GameResult = "WIN"
+					message1 = "LOSE"
+					message2 = "WIN"
 				}
 			}
 
@@ -115,40 +109,39 @@ func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int64) {
 				return
 			}
 
-			wg := sync.WaitGroup{}
-			wg.Add(2)
-
 			isSendResult[gameId] = struct{}{}
 			mu.Unlock()
 
 			go func() {
-				g.websocket.WriteJson(userIdFirst, message1)
-				wg.Done()
+				mu.Lock()
+				ch := g.userChannels[userIdFirst]
+				mu.Unlock()
+				ch <- &genproto.StreamResponse{
+					Result: &genproto.StreamResponse_GameResult{
+						GameResult: message1,
+					},
+				}
 			}()
 
 			go func() {
-				g.websocket.WriteJson(userIdSecond, message2)
-				wg.Done()
+				mu.Lock()
+				ch := g.userChannels[userIdSecond]
+				mu.Unlock()
+				ch <- &genproto.StreamResponse{
+					Result: &genproto.StreamResponse_GameResult{
+						GameResult: message2,
+					},
+				}
 			}()
-
-			wg.Wait()
 
 			return
 		case <-timer.C:
-			message1 := struct {
-				GameResult string `json:"game_result"`
-			}{}
-
-			message2 := struct {
-				GameResult string `json:"game_result"`
-			}{}
+			message1 := "WIN"
+			message2 := "LOSE"
 
 			if timeUser1 == InfTime {
-				message1.GameResult = "DRAW"
-				message2.GameResult = "DRAW"
-			} else {
-				message1.GameResult = "WIN"
-				message2.GameResult = "LOSE"
+				message1 = "DRAW"
+				message2 = "DRAW"
 			}
 
 			mu.Lock()
@@ -157,23 +150,32 @@ func (g *GameService) SendResult(gameId, userIdFirst, timeUser1 int64) {
 				return
 			}
 
-			wg := sync.WaitGroup{}
-			wg.Add(2)
-
 			isSendResult[gameId] = struct{}{}
 			mu.Unlock()
 
 			go func() {
-				g.websocket.WriteJson(userIdFirst, message1)
-				wg.Done()
+				mu.Lock()
+				ch := g.userChannels[userIdFirst]
+				mu.Unlock()
+				ch <- &genproto.StreamResponse{
+					Result: &genproto.StreamResponse_GameResult{
+						GameResult: message1,
+					},
+				}
+				close(ch)
 			}()
 
 			go func() {
-				g.websocket.WriteJson(userIdSecond, message2)
-				wg.Done()
+				mu.Lock()
+				ch := g.userChannels[userIdSecond]
+				mu.Unlock()
+				ch <- &genproto.StreamResponse{
+					Result: &genproto.StreamResponse_GameResult{
+						GameResult: message2,
+					},
+				}
+				close(ch)
 			}()
-
-			wg.Wait()
 
 			return
 		}
@@ -223,48 +225,52 @@ func (g *GameService) SendGame(game model.Game) error {
 		return err
 	}
 
-	gameInfo1 := struct {
-		Nickname string       `json:"nickname"`
-		GameId   int64        `json:"game_id"`
-		Rooms    []model.Room `json:"rooms"`
-	}{
-		Nickname: user2.Nickname,
-		GameId:   id,
-		Rooms:    rooms1,
+	var genprotoRooms1, genprotoRooms2 []*genproto.Room
+	for _, room := range rooms1 {
+		genprotoRooms1 = append(genprotoRooms1, conversions.ConvertRoom(room))
 	}
 
-	gameInfo2 := struct {
-		Nickname string       `json:"nickname"`
-		GameId   int64        `json:"game_id"`
-		Rooms    []model.Room `json:"rooms"`
-	}{
-		Nickname: user1.Nickname,
-		GameId:   id,
-		Rooms:    rooms2,
+	for _, room := range rooms2 {
+		genprotoRooms2 = append(genprotoRooms2, conversions.ConvertRoom(room))
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	gameInfo1 := &genproto.GameInfo{
+		OpponentNickname: user2.Nickname,
+		GameId:           id,
+		Rooms:            genprotoRooms1,
+	}
+
+	gameInfo2 := &genproto.GameInfo{
+		OpponentNickname: user1.Nickname,
+		GameId:           id,
+		Rooms:            genprotoRooms2,
+	}
 
 	go func() {
-		g.websocket.WriteJson(game.UserIdFirst, gameInfo1)
-		wg.Done()
+		mu.Lock()
+		ch := g.userChannels[user1.Id]
+		mu.Unlock()
+		ch <- &genproto.StreamResponse{
+			Result: &genproto.StreamResponse_GameInfo{
+				GameInfo: gameInfo1,
+			},
+		}
 	}()
 
 	go func() {
-		g.websocket.WriteJson(game.UserIdSecond, gameInfo2)
-		wg.Done()
+		mu.Lock()
+		ch := g.userChannels[user2.Id]
+		mu.Unlock()
+		ch <- &genproto.StreamResponse{
+			Result: &genproto.StreamResponse_GameInfo{
+				GameInfo: gameInfo2,
+			},
+		}
 	}()
-
-	wg.Wait()
 
 	logger.WarningLogger.Printf("send game by users with id1 = %d, id2 = %d", game.UserIdFirst, game.UserIdSecond)
 
 	return nil
-}
-
-func (g *GameService) UpgradeConnection(w http.ResponseWriter, r *http.Request) {
-	g.websocket.UpgradeConnection(w, r)
 }
 
 func (g *GameService) DeleteCall(userIdFirst, userIdSecond int64) error {
@@ -465,6 +471,19 @@ func (g *GameService) GetRoomByCodePattern(code string, campusId int64) ([]model
 	return g.repo.GetRoomByCodePattern(code, campusId)
 }
 
+func (g *GameService) CreateUserChannel(userID int64) chan *genproto.StreamResponse {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if c, ok := g.userChannels[userID]; ok {
+		close(c)
+	}
+
+	userChannel := make(chan *genproto.StreamResponse)
+	g.userChannels[userID] = userChannel
+	return userChannel
+}
+
 func (g *GameService) run() {
 	for value := range g.queue.GetGameChan() {
 		err := g.SendGame(value)
@@ -474,13 +493,13 @@ func (g *GameService) run() {
 	}
 }
 
-func NewGameService(repo *repository.Repository, queue *queue.Queue, websocket *websocket.Server) *GameService {
+func NewGameService(repo *repository.Repository, queue *queue.Queue) *GameService {
 	rand.Seed(time.Now().Unix())
 
 	gameService := GameService{
-		repo:      repo,
-		queue:     queue,
-		websocket: websocket,
+		repo:         repo,
+		queue:        queue,
+		userChannels: make(map[int64]chan *genproto.StreamResponse),
 	}
 
 	go gameService.queue.Start()
