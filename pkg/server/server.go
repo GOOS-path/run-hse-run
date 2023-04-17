@@ -20,7 +20,9 @@ func NewGRPCServer(services *service.Service) *GRPCServer {
 func (srv *GRPCServer) Run(listener net.Listener) error {
 	serverOptions := []grpc.ServerOption{
 		grpc.UnaryInterceptor(srv.unaryInterceptor()),
+		grpc.StreamInterceptor(srv.streamInterceptor()),
 	}
+
 	srv.grpcServer = grpc.NewServer(serverOptions...)
 
 	authServer := NewAuthServer(srv.services)
