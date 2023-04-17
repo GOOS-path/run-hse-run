@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package run.hse.run;
+
+option go_package = ".;genproto";
+
+service ChatService {
+  rpc DoChatting(stream MessageRequest) returns(stream MessageResponse);
+}
+
+message MessageRequest {
+  string content = 1;
+  int64 user_to = 2;
+}
+
+message MessageResponse {
+  string content = 1;
+  int64 user_from = 2;
+}

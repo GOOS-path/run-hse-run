@@ -1,4 +1,4 @@
-test_token ?= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ3MjAzNTUsImlhdCI6MTY4MTY0ODM1NSwidXNlcl9pZCI6M30.SyQ5jjS1iVQJ7HWjUB-8kC8cK6CXjAe5meB7mUx-PE0
+test_token ?= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQ3NjIwMjEsImlhdCI6MTY4MTY5MDAyMSwidXNlcl9pZCI6OH0.CHd-HM6JfZWIZC89fm-g5xJKbJyvAy08Vo-bvc4wYrc
 
 generate:
 	protoc --proto_path=proto proto/*.proto  --go_out=:genproto --go-grpc_out=require_unimplemented_servers=false:genproto
@@ -10,7 +10,7 @@ verify:
 	grpcurl -plaintext -d '{"email": "$(email)", "code": $(code)}' localhost:8000 run.hse.run.AuthService/Verify
 
 create-user:
-	grpcurl -plaintext -d '{"email": "$(email)", "nickname": "$(nickname)"}' localhost:8000 run.hse.run.AuthService/Registration
+	grpcurl -plaintext -d '{"email": "$(email)", "nickname": "$(nickname)", "image": "$(image)"}' localhost:8000 run.hse.run.AuthService/Registration
 
 get-me:
 	grpcurl -plaintext -rpc-header "authorization: $(test_token)" localhost:8000 run.hse.run.UserService/GetMe
