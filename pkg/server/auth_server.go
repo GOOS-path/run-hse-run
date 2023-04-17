@@ -32,8 +32,6 @@ func (a *AuthServer) Registration(_ context.Context, request *genproto.User) (*g
 
 	id, err := a.services.CreateUser(user)
 
-	saveImage(id, request.GetImage())
-
 	if err != nil {
 		logger.WarningLogger.Println(err)
 		if err.Error() == service.NicknameError {
@@ -42,14 +40,16 @@ func (a *AuthServer) Registration(_ context.Context, request *genproto.User) (*g
 		return nil, status.Errorf(codes.Internal, "server internal error: %v", err.Error())
 	}
 
-	user.Id = id
-	user.Image = request.GetImage()
-
 	token, err := a.services.GenerateToken(request.GetEmail())
 	if err != nil {
 		logger.WarningLogger.Println(err)
 		return nil, status.Errorf(codes.InvalidArgument, "invalid nickname: %v", err.Error())
 	}
+
+	user.Id = id
+	user.Image = request.GetImage()
+	createFile(user.Id)
+	saveImage(id, request.GetImage())
 
 	return &genproto.UserWithToken{
 		AccessToken: token,

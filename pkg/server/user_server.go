@@ -21,9 +21,19 @@ type UserServer struct {
 	services *service.Service
 }
 
-func saveImage(userId int64, content string) {
-	file, err := os.OpenFile(fmt.Sprintf("../../images/image_%d", userId), os.O_RDWR, 0666)
+func createFile(userId int64) {
+	file, err := os.Create(fmt.Sprintf("images/image_%d", userId))
 	if err != nil {
+		logger.WarningLogger.Println(err.Error())
+		return
+	}
+	file.Close()
+}
+
+func saveImage(userId int64, content string) {
+	file, err := os.OpenFile(fmt.Sprintf("images/image_%d", userId), os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		logger.WarningLogger.Println(err.Error())
 		return
 	}
 	defer file.Close()
@@ -32,8 +42,9 @@ func saveImage(userId int64, content string) {
 }
 
 func getImage(userId int64) string {
-	file, err := os.OpenFile(fmt.Sprintf("../../images/image_%d", userId), os.O_RDWR, 0666)
+	file, err := os.OpenFile(fmt.Sprintf("images/image_%d", userId), os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
+		logger.WarningLogger.Println(err.Error())
 		return ""
 	}
 	defer file.Close()
