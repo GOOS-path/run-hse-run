@@ -15,9 +15,10 @@ const (
 )
 
 var accessibleRoles = map[string]struct{}{
-	"/run.hse.run.AuthService/Registration":    {},
-	"/run.hse.run.AuthService/SendVerifyEmail": {},
-	"/run.hse.run.AuthService/Verify":          {},
+	"/run.hse.run.AuthService/Registration":                          {},
+	"/run.hse.run.AuthService/SendVerifyEmail":                       {},
+	"/run.hse.run.AuthService/Verify":                                {},
+	"/grpc.reflection.v1alpha.ServerReflection/ServerReflectionInfo": {},
 }
 
 func (srv *GRPCServer) unaryInterceptor() grpc.UnaryServerInterceptor {
